@@ -26,28 +26,45 @@ export class ShoppingListEditComponent implements OnInit {
     this.shoppingList$ = this.store.select('shoppingList');
 
     this.shoppingList$.subscribe((state) => {
-      if (state.editedIngredient == null) return;
+      if (state.editedIngredient == null) {
+        this.ingredientName = null;
+        this.amount = 0;
+      } else {
+        this.ingredientName = state.editedIngredient.name;
+        this.amount = state.editedIngredient.amount;
+      }
 
-      this.ingredientName = state.editedIngredient.name;
-      this.amount = state.editedIngredient.amount;
       this.index = state.editedIngredientIndex;
-      this.isAdding = false;
+      this.isAdding = this.index < 0;
     });
   }
 
-  OnAdd() {
-    const newIngred: Ingredient = new Ingredient(
-      this.ingredientName,
-      this.amount
-    );
+  OnAddOrUpdate() {
+    if (this.isAdding) {
+      const newIngred: Ingredient = new Ingredient(
+        this.ingredientName,
+        this.amount
+      );
 
-    this.onAddInternal(newIngred);
+      this.onAddInternal(newIngred);
+    } else {
+      let ingred = new Ingredient(this.ingredientName, this.amount);
+
+      this.store.dispatch(new ShoppingListActions.UpdateIngredient({index: this.index, ingredient: ingred}));
+      this.store.dispatch(new ShoppingListActions.StopEdit());
+      this.isAdding = true;
+    }
   }
 
   OnDelete() {
     if (this.index < 0) return;
 
     this.store.dispatch(new ShoppingListActions.DeleteIngredient(this.index));
+    this.store.dispatch(new ShoppingListActions.StopEdit());
+  }
+
+  OnClear(){
+    this.store.dispatch(new ShoppingListActions.StopEdit());
   }
 
   private onAddInternal(ingred: Ingredient) {

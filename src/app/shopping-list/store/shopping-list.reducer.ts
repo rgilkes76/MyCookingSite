@@ -37,7 +37,7 @@ export function shoppingListReducer(
       
     case ShoppingListActions.UPDATE_INGREDIENT:
       var index = action.payload.index;
-      if (index < 0 || state.ingredients.length >= index) return state;
+      if (index < 0 || index >= state.ingredients.length) return state;
 
       const existingIngredient = state.ingredients[index];
 
